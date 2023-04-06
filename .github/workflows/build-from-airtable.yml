@@ -80,14 +80,13 @@ jobs:
           title: New Deployment from Airtable
           body: New Deployment request was received from Airtable
         # get issuse number from json 
-      - name: Extract Issue Number
+      - name: Execute Javascript
+        uses: amochkin/action-javascript@v1
         id: extract-issue-number
-        run: |
-          echo '---'
-          echo $(${{ steps.open-issue.outputs.issue }} | grep -oP '(?<="number":)[^,}]+')
-          echo '---'
-          echo "issue_number=$(echo ${{ steps.open-issue.outputs.issue }} | grep -oP '(?<="number":)[^,}]+')" >> $GITHUB_OUTPUT
-        # output issue number
+        with:
+          input_1: ${{ steps.open-issue.outputs.issue }}
+          js: |
+            output("issue_number", JSON.parse(input("input_1")).number)
         
     permissions:
       issues: write
