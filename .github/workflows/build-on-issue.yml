@@ -1,0 +1,206 @@
+name: Issue opened
+
+on:
+  issues:
+    types: [opened]
+
+jobs:
+  check_request:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check if issue is from Airtable app connection
+        id: check-app-connection
+        run: |
+          if [[ "${{ github.event.issue.performed_via_github_app.slug }}" == "airtable-connector" ]]; then
+            echo "app-connection=true" >> $GITHUB_OUTPUT
+          else
+            echo "app-connection=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Check issue title
+        if: steps.check-app-connection.outputs.app-connection == 'true' && github.event.issue.title == 'build request from airtable'
+        id: build
+        run: |
+          msg=$(echo "starting build")
+          echo "check_result=$msg" >> $GITHUB_OUTPUT
+      - name: Check issue title
+        if: steps.check-app-connection.outputs.app-connection == 'false' && github.event.issue.title == 'build request from airtable'
+        id: reject
+        run: |
+          msg=$(echo "Wont build, because this issue is not coming from airtable connection")
+          echo "check_result=$msg" >> $GITHUB_OUTPUT
+    outputs:
+      CHECK_RESUlT: ${{ steps.build.outputs.check_result || steps.reject.outputs.check_result }}
+
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    needs: check_request
+    if: needs.check_request.outputs.CHECK_RESUlT == 'starting build'
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+        with:
+          path: main
+      - name: Get Metadash Modules
+        uses: actions/checkout@v3
+        with:
+          repository: malipetek/metadash2
+          path: metadash
+      # Move some folders to src of main repo
+      - name: Move Folders
+        run: |
+          mv metadash/src/FortunoffApp main/src/FortunoffApp
+          mv metadash/src/Inputs main/src/Inputs
+          mv metadash/src/SiteBanner main/src/SiteBanner
+          mv metadash/src/Viz main/src/Viz
+          rm -rf metadash
+      - name: Install dependencies
+        run: |
+          cd main
+          yarn install
+      - name: Build Static Site
+        id: build
+        run: |
+          cd main
+          yarn build
+
+      # set git user for deployment
+      - name: set git email
+        run:  |
+          cd main
+          git config user.email "support+actions@github.com"
+      - name: set git user
+        run: |
+          cd main
+          git config user.name "Github Actions Bot"
+
+      - name: Deploy to GitHub Pages
+        uses: Cecilapp/GitHub-Pages-deploy@v3
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          email: support+actions@github.com
+          build_dir: main/build
+
+    outputs:
+      BUILD_OUTPUT: ${{ steps.build.outputs.BUILD_OUTPUT }}
+      DEPLOY_OUTPUT: ${{ steps.deploy.outputs.DEPLOY_OUTPUT }}
+    env:
+      AIRTABLE_TOKEN: ${{ secrets.AIRTABLE_TOKEN }}
+      CI: false
+      
+  report:
+    runs-on: ubuntu-latest
+    needs: check_request
+    steps:
+      - name: get issue number
+        id: get_issue_number
+        uses: actions/github-script@v6
+        with:
+          script: |
+            if (context.issue.number) {
+              // Return issue number if present
+              return context.issue.number;
+            } else {
+              // Otherwise return issue number from commit
+              return (
+                await github.rest.repos.listPullRequestsAssociatedWithCommit({
+                  commit_sha: context.sha,
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                })
+              ).data[0].number;
+            }
+          result-encoding: string
+
+      - name: comment-actions
+        uses: GrantBirki/comment@v2.0.3
+        with:
+          token: ${{ github.token }}
+          repository: ${{ github.repository }}
+          issue-number: ${{steps.get_issue_number.outputs.result}}
+          body: ${{ needs.check_request.outputs.CHECK_RESUlT }}
+          # close the issue
+    permissions:
+      issues: write
+
+  report-build-success:
+    runs-on: ubuntu-latest
+    needs: build-and-deploy
+    if: (success())
+    steps:
+      - name: get issue number
+        id: get_issue_number
+        uses: actions/github-script@v6
+        with:
+          script: |
+            if (context.issue.number) {
+              // Return issue number if present
+              return context.issue.number;
+            } else {
+              // Otherwise return issue number from commit
+              return (
+                await github.rest.repos.listPullRequestsAssociatedWithCommit({
+                  commit_sha: context.sha,
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                })
+              ).data[0].number;
+            }
+          result-encoding: string
+
+      - name: comment-actions
+        uses: GrantBirki/comment@v2.0.3
+        with:
+          token: ${{ github.token }}
+          repository: ${{ github.repository }}
+          issue-number: ${{steps.get_issue_number.outputs.result}}
+          # concat with deploy oputput: needs.build-and-deploy.outputs.BUILD_OUTPUT
+          body: "## Deployed \n
+                You can check it at 👉 https://malipetek.github.io/metadash2"
+          # close the issue
+    permissions:
+      issues: write
+
+  report-build-failure:
+    runs-on: ubuntu-latest
+    needs: build-and-deploy
+    if: (failure())
+    steps:
+      - name: get issue number
+        id: get_issue_number
+        uses: actions/github-script@v6
+        with:
+          script: |
+            if (context.issue.number) {
+              // Return issue number if present
+              return context.issue.number;
+            } else {
+              // Otherwise return issue number from commit
+              return (
+                await github.rest.repos.listPullRequestsAssociatedWithCommit({
+                  commit_sha: context.sha,
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                })
+              ).data[0].number;
+            }
+          result-encoding: string
+
+      - name: comment-actions
+        uses: GrantBirki/comment@v2.0.3
+        with:
+          token: ${{ github.token }}
+          repository: ${{ github.repository }}
+          issue-number: ${{steps.get_issue_number.outputs.result}}
+          # concat with deploy oputput: needs.build-and-deploy.outputs.BUILD_OUTPUT
+          body: " ## Deployment failed for some reason ⚠️ \n
+                  - Check if actions have have access to write permissions \n
+                  settings -> actions -> permissions -> check write access to issues and pull requests \n
+                  - Check if actions have \\`AIRTABLE_TOKEN\\` secret \n
+                  settings (left column) -> secrets and variables -> actions -> repository secrets \n
+                    "
+          # close the issue
+    permissions:
+      issues: write
+
