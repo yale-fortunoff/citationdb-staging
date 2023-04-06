@@ -69,7 +69,11 @@ jobs:
         # get issuse number from json 
       - name: Extract Issue Number
         id: extract-issue-number
-        run: echo "issue_number=$(echo ${{steps.open-issue.outputs.issue}} | jq -r '.number')" >> $GITHUB_OUTPUT
+        run: |
+          echo '---'
+          echo ${{steps.open-issue.outputs.issue}} | jq -r '.number'
+          echo '---'
+          echo "issue_number=$(echo ${{steps.open-issue.outputs.issue}} | jq -r '.number')" >> $GITHUB_OUTPUT
         # output issue number
         
     permissions:
