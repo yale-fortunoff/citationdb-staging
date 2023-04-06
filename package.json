@@ -1,6 +1,6 @@
 {
   "name": "citation-db",
-  "homepage": "https://malipetek.github.io/citationdb/",
+  "homepage": "https://yale-fortunoff.github.io/citationdb-staging/",
   "version": "0.1.0",
   "private": true,
   "dependencies": {
