@@ -66,11 +66,15 @@ jobs:
           token: ${{ github.token }}
           title: New Deployment from Airtable
           body: New Deployment request was received from Airtable
+        # get issuse number from json 
+      - name: Extract Issue Number
+        run: echo "issue_number=$(echo ${{steps.open-issue.outputs.issue}} | jq -r '.number')" >> $GITHUB_ENV
+        # output issue number
         
     permissions:
       issues: write
     outputs:
-      ISSUE: ${{ steps.open-issue.outputs.issue }}
+      ISSUE: ${{ steps.open-issue.outputs.issue_number }}
 
   report-build-success:
     runs-on: ubuntu-latest
