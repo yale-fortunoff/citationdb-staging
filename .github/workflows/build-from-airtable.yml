@@ -84,7 +84,7 @@ jobs:
         id: extract-issue-number
         run: |
           echo '---'
-          echo ${{ steps.open-issue.outputs.issue }} | grep -oP '(?<="number":)[^,}]+'
+          echo $(${{ steps.open-issue.outputs.issue }} | grep -oP '(?<="number":)[^,}]+')
           echo '---'
           echo "issue_number=$(echo ${{ steps.open-issue.outputs.issue }} | grep -oP '(?<="number":)[^,}]+')" >> $GITHUB_OUTPUT
         # output issue number
