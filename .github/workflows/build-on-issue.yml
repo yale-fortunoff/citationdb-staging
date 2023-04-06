@@ -5,37 +5,8 @@ on:
     types: [opened]
 
 jobs:
-  check_request:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Check if issue is from Airtable app connection
-        id: check-is-owner
-        run: |
-          if [ "${{ github.event.issue.user.login }}" == "${{ github.repository.owner.login }}" ]; then
-            echo "is-owner=true" >> $GITHUB_OUTPUT
-          else
-            echo "is-owner=false" >> $GITHUB_OUTPUT
-          fi
-
-      - name: Check issue title
-        if: steps.check-check-is-owner.outputs.is-owner == 'true' && github.event.issue.title == 'build request from airtable'
-        id: build
-        run: |
-          msg=$(echo "starting build")
-          echo "check_result=$msg" >> $GITHUB_OUTPUT
-      - name: Check issue title
-        if: steps.check-check-is-owner.outputs.is-owner == 'false' && github.event.issue.title == 'build request from airtable'
-        id: reject
-        run: |
-          msg=$(echo "Wont build, because this issue is not coming from airtable connection")
-          echo "check_result=$msg" >> $GITHUB_OUTPUT
-    outputs:
-      CHECK_RESUlT: ${{ steps.build.outputs.check_result || steps.reject.outputs.check_result }}
-
   build-and-deploy:
     runs-on: ubuntu-latest
-    needs: check_request
-    if: needs.check_request.outputs.CHECK_RESUlT == 'starting build'
     steps:
       - name: Checkout
         uses: actions/checkout@v3
@@ -91,70 +62,30 @@ jobs:
       
   report:
     runs-on: ubuntu-latest
-    needs: check_request
     steps:
-      - name: get issue number
-        id: get_issue_number
-        uses: actions/github-script@v6
-        with:
-          script: |
-            if (context.issue.number) {
-              // Return issue number if present
-              return context.issue.number;
-            } else {
-              // Otherwise return issue number from commit
-              return (
-                await github.rest.repos.listPullRequestsAssociatedWithCommit({
-                  commit_sha: context.sha,
-                  owner: context.repo.owner,
-                  repo: context.repo.repo,
-                })
-              ).data[0].number;
-            }
-          result-encoding: string
-
-      - name: comment-actions
-        uses: GrantBirki/comment@v2.0.3
+      - name: open-issue
+        uses: bramiller1989/issue-action@v1
         with:
           token: ${{ github.token }}
-          repository: ${{ github.repository }}
-          issue-number: ${{steps.get_issue_number.outputs.result}}
-          body: ${{ needs.check_request.outputs.CHECK_RESUlT }}
-          # close the issue
+          title: New Deployment from Airtable
+          body: New Deployment request was received from Airtable
+          
     permissions:
       issues: write
+    outputs:
+      ISSUE: ${{ steps.open-issue.outputs.issue }}
 
   report-build-success:
     runs-on: ubuntu-latest
-    needs: build-and-deploy
+    needs: [build-and-deploy,report]
     if: (success())
     steps:
-      - name: get issue number
-        id: get_issue_number
-        uses: actions/github-script@v6
-        with:
-          script: |
-            if (context.issue.number) {
-              // Return issue number if present
-              return context.issue.number;
-            } else {
-              // Otherwise return issue number from commit
-              return (
-                await github.rest.repos.listPullRequestsAssociatedWithCommit({
-                  commit_sha: context.sha,
-                  owner: context.repo.owner,
-                  repo: context.repo.repo,
-                })
-              ).data[0].number;
-            }
-          result-encoding: string
-
       - name: comment-actions
         uses: GrantBirki/comment@v2.0.3
         with:
           token: ${{ github.token }}
           repository: ${{ github.repository }}
-          issue-number: ${{steps.get_issue_number.outputs.result}}
+          issue-number: ${{ needs.report.outputs.ISSUE }}
           # concat with deploy oputput: needs.build-and-deploy.outputs.BUILD_OUTPUT
           body: "## Deployed \n
                 You can check it at 👉 https://malipetek.github.io/metadash2"
@@ -164,35 +95,15 @@ jobs:
 
   report-build-failure:
     runs-on: ubuntu-latest
-    needs: build-and-deploy
+    needs: [build-and-deploy,report]
     if: (failure())
     steps:
-      - name: get issue number
-        id: get_issue_number
-        uses: actions/github-script@v6
-        with:
-          script: |
-            if (context.issue.number) {
-              // Return issue number if present
-              return context.issue.number;
-            } else {
-              // Otherwise return issue number from commit
-              return (
-                await github.rest.repos.listPullRequestsAssociatedWithCommit({
-                  commit_sha: context.sha,
-                  owner: context.repo.owner,
-                  repo: context.repo.repo,
-                })
-              ).data[0].number;
-            }
-          result-encoding: string
-
       - name: comment-actions
         uses: GrantBirki/comment@v2.0.3
         with:
           token: ${{ github.token }}
           repository: ${{ github.repository }}
-          issue-number: ${{steps.get_issue_number.outputs.result}}
+          issue-number: ${{ needs.report.outputs.ISSUE }}
           # concat with deploy oputput: needs.build-and-deploy.outputs.BUILD_OUTPUT
           body: " ## Deployment failed for some reason ⚠️ \n
                   - Check if actions have have access to write permissions \n
