@@ -74,24 +74,17 @@ jobs:
     steps:
       - name: open-issue
         id: open-issue
-        uses: bramiller1989/open-issue@v1
+        uses: dacbd/create-issue-action@main
         with:
           token: ${{ github.token }}
           title: New Deployment from Airtable
           body: New Deployment request was received from Airtable
         # get issuse number from json 
-      - name: Execute Javascript
-        uses: amochkin/action-javascript@v1
-        id: extract-issue-number
-        with:
-          input_1: ${{ steps.open-issue.outputs.issue }}
-          js: |
-            output("issue_number", JSON.parse(input("input_1")).number)
         
     permissions:
       issues: write
     outputs:
-      ISSUE: ${{ steps.extract-issue-number.outputs.issue_number }}
+      ISSUE: ${{ steps.open-issue.outputs.number }}
 
   report-build-success:
     runs-on: ubuntu-latest
