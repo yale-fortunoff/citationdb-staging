@@ -68,7 +68,7 @@ jobs:
           body: New Deployment request was received from Airtable
         # get issuse number from json 
       - name: Extract Issue Number
-        run: echo "issue_number=$(echo ${{steps.open-issue.outputs.issue}} | jq -r '.number')" >> $GITHUB_ENV
+        run: echo "issue_number=$(echo ${{steps.open-issue.outputs.issue}} | jq -r '.number')" >> $GITHUB_OUTPUT
         # output issue number
         
     permissions:
