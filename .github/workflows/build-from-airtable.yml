@@ -27,7 +27,7 @@ jobs:
       # Install dependencies
       - name: Get yarn cache directory path
         id: yarn-cache-dir-path
-        run: echo "name=dir=$(yarn cache dir)" >> $GITHUB_OUTPUT
+        run: echo "dir=$(yarn cache dir)" >> $GITHUB_OUTPUT
   
       - uses: actions/cache@v2
         id: yarn-cache
