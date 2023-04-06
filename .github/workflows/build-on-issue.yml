@@ -9,22 +9,22 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Check if issue is from Airtable app connection
-        id: check-app-connection
+        id: check-is-owner
         run: |
-          if [[ "${{ github.event.issue.performed_via_github_app.slug }}" == "airtable-connector" ]]; then
-            echo "app-connection=true" >> $GITHUB_OUTPUT
+          if [ "${{ github.event.issue.user.login }}" == "${{ github.repository.owner.login }}" ]; then
+            echo "is-owner=true" >> $GITHUB_OUTPUT
           else
-            echo "app-connection=false" >> $GITHUB_OUTPUT
+            echo "is-owner=false" >> $GITHUB_OUTPUT
           fi
 
       - name: Check issue title
-        if: steps.check-app-connection.outputs.app-connection == 'true' && github.event.issue.title == 'build request from airtable'
+        if: steps.check-check-is-owner.outputs.is-owner == 'true' && github.event.issue.title == 'build request from airtable'
         id: build
         run: |
           msg=$(echo "starting build")
           echo "check_result=$msg" >> $GITHUB_OUTPUT
       - name: Check issue title
-        if: steps.check-app-connection.outputs.app-connection == 'false' && github.event.issue.title == 'build request from airtable'
+        if: steps.check-check-is-owner.outputs.is-owner == 'false' && github.event.issue.title == 'build request from airtable'
         id: reject
         run: |
           msg=$(echo "Wont build, because this issue is not coming from airtable connection")
