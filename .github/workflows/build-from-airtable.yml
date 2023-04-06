@@ -84,9 +84,9 @@ jobs:
         id: extract-issue-number
         run: |
           echo '---'
-          echo ${{steps.open-issue.outputs.issue}} | jq -r '.number'
+          echo ${{ steps.open-issue.outputs.issue }} | grep -oP '(?<="number":)[^,}]+'
           echo '---'
-          echo "issue_number=$(echo ${{steps.open-issue.outputs.issue}} | jq -r '.number')" >> $GITHUB_OUTPUT
+          echo "issue_number=$(echo ${{ steps.open-issue.outputs.issue }} | grep -oP '(?<="number":)[^,}]+')" >> $GITHUB_OUTPUT
         # output issue number
         
     permissions:
