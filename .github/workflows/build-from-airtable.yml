@@ -52,9 +52,6 @@ jobs:
           email: support+actions@github.com
           build_dir: main/build
 
-    outputs:
-      BUILD_OUTPUT: ${{ steps.build.outputs.BUILD_OUTPUT }}
-      DEPLOY_OUTPUT: ${{ steps.deploy.outputs.DEPLOY_OUTPUT }}
     env:
       AIRTABLE_TOKEN: ${{ secrets.AIRTABLE_TOKEN }}
       CI: false
@@ -63,12 +60,13 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: open-issue
+        id: open-issue
         uses: bramiller1989/open-issue@v1
         with:
           token: ${{ github.token }}
           title: New Deployment from Airtable
           body: New Deployment request was received from Airtable
-          
+        
     permissions:
       issues: write
     outputs:
