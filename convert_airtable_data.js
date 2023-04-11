@@ -33,7 +33,7 @@ for (const obj of AuthorSource) {
   };
 }
 
-fs.writeFileSync(path.resolve(__dirname, './src/CitationDB/Data/json/author.json'), JSON.stringify(authorTarget, null, 2));
+fs.writeFileSync(path.resolve(__dirname, './public/data/author.json'), JSON.stringify(authorTarget, null, 2));
 
 /*************
  * FOOTNOTES *
@@ -60,7 +60,7 @@ FootnoteSource.forEach((obj, index) => {
   };
 });
 
-fs.writeFileSync(path.resolve(__dirname, './src/CitationDB/Data/json/footnote.json'), JSON.stringify(footnoteTarget, null, 2));
+fs.writeFileSync(path.resolve(__dirname, './public/data/footnote.json'), JSON.stringify(footnoteTarget, null, 2));
 
 /*************
  * RESOURCES *
@@ -74,7 +74,7 @@ resourceSource.forEach(item => {
   }
 });
 
-fs.writeFileSync(path.resolve(__dirname, './src/CitationDB/Data/json/resource.json'), JSON.stringify(resourceTarget, null, 2));
+fs.writeFileSync(path.resolve(__dirname, './public/data/resource.json'), JSON.stringify(resourceTarget, null, 2));
 
 /****************
  * PUBLICATIONS *
@@ -84,7 +84,7 @@ const publicationTarget = {};
 
 for (const item of publicationSource) {
   const id = item.id;
-  const authorId = item["author.id"] ? item["author.id"][0] : null;
+  const authorId = item["author.id"] ? item["author.id"] : [];
   const date = item.date || null;
   const uri = item.uri || null;
   const publisher = item.publisher || null;
@@ -101,4 +101,4 @@ for (const item of publicationSource) {
   };
 }
 
-fs.writeFileSync(path.resolve(__dirname, './src/CitationDB/Data/json/publication.json'), JSON.stringify(publicationTarget, null, 2));
+fs.writeFileSync(path.resolve(__dirname, './public/data/publication.json'), JSON.stringify(publicationTarget, null, 2));

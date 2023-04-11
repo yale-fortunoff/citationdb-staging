@@ -16,18 +16,56 @@ const base = Airtable.base('appn80Y1csBuNkzfO');
 
 async function downloadTable(tableName) {
   const records = await base(tableName).select().all();
-  const jsonRecords = records.map(record => record._rawJson.fields);
-  // save json files
-  fs.ensureDirSync(path.resolve(__dirname, `./src/CitationDB/Data/from_airtable`));
-  fs.writeFileSync(path.resolve(__dirname, `./src/CitationDB/Data/from_airtable/${tableName}.json`), JSON.stringify(jsonRecords, null, 2));
+  let jsonRecords = records.map(record => record.fields);
+  // jsonRecords = Promise.all(jsonRecords.map(record => { 
+  return { tableName, records, jsonRecords };
 }
 
-
-async function downloadAllTables() {
-  const tableNames = ['Resource', 'Footnote', 'Author', 'Publication'];
-  for (const tableName of tableNames) {
-    await downloadTable(tableName);
+const fieldMappings = {
+  'author.id': 'Author',
+  'Publication': 'Publication',
+  'publication.id': 'Publication',
+  'resource.id': 'Resource',
+  'Footnote': 'Footnote',
+  'Footnotes': 'Footnote',
+  has(obj) {
+    return Object.keys(this).some(key => Object.keys(obj).indexOf(key) !== -1);
+  },
+  recordsToBeConverted(obj) {
+    return Object.keys(this).filter(key => Object.keys(obj).indexOf(key) !== -1);
   }
+}
+async function downloadAllTables() {
+  const tableNames = [
+    'Resource',
+    'Footnote',
+    'Author',
+    'Publication'
+  ];
+  const tables = {};
+  for (const tableName of tableNames) {
+    tables[tableName] = await downloadTable(tableName);
+  }
+
+  for (let tableName in tables) {
+    const table = tables[tableName];
+    table.jsonRecords = table.jsonRecords.map(record => {
+      if (fieldMappings.has(record)) {
+        fieldMappings.recordsToBeConverted(record).forEach(key => {
+          record[key] = record[key].map(id => {
+            return [...tables[fieldMappings[key]].records].find(r => r.id === id).fields.id;
+          });
+        });
+      }
+      return record;
+    });
+
+
+    fs.ensureDirSync(path.resolve(__dirname, `./src/CitationDB/Data/from_airtable`));
+    fs.writeFileSync(path.resolve(__dirname, `./src/CitationDB/Data/from_airtable/${tableName}.json`), JSON.stringify(table.jsonRecords, null, 2));
+
+  }
+
 }
 
 downloadAllTables();
