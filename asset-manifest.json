@@ -1,7 +1,7 @@
 {
   "files": {
     "main.css": "/citationdb-staging/static/css/main.bf0ad78d.css",
-    "main.js": "/citationdb-staging/static/js/main.e7663e7a.js",
+    "main.js": "/citationdb-staging/static/js/main.6aab7080.js",
     "static/media/yalenew-roman-webfont.woff": "/citationdb-staging/static/media/yalenew-roman-webfont.dc72385855adfe8187c3.woff",
     "static/media/yalenew-roman-webfont.woff2": "/citationdb-staging/static/media/yalenew-roman-webfont.077c9e0f95bf605a4aa8.woff2",
     "index.html": "/citationdb-staging/index.html",
@@ -10,10 +10,10 @@
     "static/media/x-field.svg": "/citationdb-staging/static/media/x-field.969f699306abc4a0bc88.svg",
     "static/media/dropdown-arrow.svg": "/citationdb-staging/static/media/dropdown-arrow.1e266fb2b54355eb942d.svg",
     "main.bf0ad78d.css.map": "/citationdb-staging/static/css/main.bf0ad78d.css.map",
-    "main.e7663e7a.js.map": "/citationdb-staging/static/js/main.e7663e7a.js.map"
+    "main.6aab7080.js.map": "/citationdb-staging/static/js/main.6aab7080.js.map"
   },
   "entrypoints": [
     "static/css/main.bf0ad78d.css",
-    "static/js/main.e7663e7a.js"
+    "static/js/main.6aab7080.js"
   ]
 }
