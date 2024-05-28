@@ -583,13 +583,6 @@
     "type": "book",
     "title": "Musical Memories of Terezin in Transnational Perpective"
   },
-  "undefined": {
-    "author.id": [],
-    "date": null,
-    "uri": null,
-    "publisher": null,
-    "type": null
-  },
   "be400af4": {
     "author.id": [
       "brcker-eva"
@@ -1856,6 +1849,14 @@
     "publisher": null,
     "type": null,
     "title": "Use for class presentation"
+  },
+  "Fedewa1": {
+    "author.id": [],
+    "date": 2024,
+    "uri": null,
+    "publisher": "Metropol Verlag",
+    "type": "academic",
+    "title": "\"'The main thing is to get into the Reich': Jewish Women and Adolescents\n‘Passing’ as Non-Jewish Civilian Laborers in German Transit Camps in the General Government.\""
   },
   "HVT-2893": {
     "author.id": [],
