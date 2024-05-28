@@ -1851,7 +1851,9 @@
     "title": "Use for class presentation"
   },
   "Fedewa1": {
-    "author.id": [],
+    "author.id": [
+      "Fedewa-L"
+    ],
     "date": 2024,
     "uri": null,
     "publisher": "Metropol Verlag",
